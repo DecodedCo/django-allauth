@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.shortcuts import render_to_response, render
@@ -18,6 +20,10 @@ from .models import SocialLogin
 from . import app_settings
 from . import signals
 from .adapter import get_adapter
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def _process_signup(request, sociallogin):
@@ -64,6 +70,18 @@ def render_authentication_error(request,
                                 error=AuthError.UNKNOWN,
                                 exception=None,
                                 extra_context=None):
+    logger.error(
+        'OAUTH EXCEPTION: {0}\n{1}'.format(
+            exception.__class__.__name__,
+            exception
+        )
+    )
+    logger.error(
+        'OAUTH ERROR CODE: {0}\n{1}'.format(
+            error.__class__.__name__,
+            error
+        )
+    )
     try:
         if extra_context is None:
             extra_context = {}
@@ -84,6 +102,7 @@ def render_authentication_error(request,
         }
     }
     context.update(extra_context)
+    logger.error(context)
     return render_to_response(
         "socialaccount/authentication_error.html",
         context, context_instance=RequestContext(request))
